@@ -18,7 +18,11 @@ end
 
 # Yahoo! didn't use server flow to return access token, hence this horrible hack
 get '/js-callback' do
-  haml :callback, :layout => false
+  if params[:error]
+    haml "%p I need access to your Profile information, you know.\n%p\n\t%a{:href => '/when'} &larr; Please try again"
+  else
+    haml :callback, :layout => false
+  end
 end
 
 # I hate long URLs
@@ -45,6 +49,8 @@ get '/yahoo' do
 
   halt 500 unless @nickname && member_since
   
+  @image_url = social_profile.dig('query', 'results', 'profile', 'image', 'imageUrl')
+  
   # Wikipedia Current Events Portal URL building for dummies
   begin
     the_date = DateTime.parse(member_since)
@@ -66,10 +72,4 @@ end
 # Duh
 error 403, 404, 500 do
   haml :error
-end
-
-helpers do
-  def h(text)
-    Rack::Utils.escape_html(text)
-  end
 end
