@@ -46,3 +46,8 @@ get '/yahoo' do
   
   'Hey ' + nickname + ", you've been a Yahoo! member since #{dow}, #{m} #{d}, #{y}. <a href='https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}'>See what was happening back then &raquo;</a>"
 end
+
+# Duh
+error do
+  'Sorry, this is just a weekend project ;-)'
+end
