@@ -7,14 +7,18 @@ require 'time'
 
 enable :sessions
 
-# OAuth authorization 
 get '/' do
+  haml "%a{:href => url('/when')} When did I create my Yahoo account?"
+end
+
+# OAuth authorization 
+get '/when' do
   redirect 'https://api.login.yahoo.com/oauth2/request_auth?client_id=' + ENV['YDN_CLIENT_ID'] + '&response_type=token&redirect_uri=' + ENV['SITE'] + '/js-callback'  
 end
 
 # Yahoo! didn't use server flow to return access token, hence this horrible hack
 get '/js-callback' do
-  haml :callback
+  haml :callback, :layout => false
 end
 
 # I hate long URLs
@@ -36,10 +40,10 @@ get '/yahoo' do
   
   # Fields of interest
   social_profile = JSON.parse(social_profile_json)
-  nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
+  @nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
   member_since = social_profile.dig('query', 'results', 'profile', 'memberSince')
 
-  halt 500 unless nickname && member_since
+  halt 500 unless @nickname && member_since
   
   # Wikipedia Current Events Portal URL building for dummies
   begin
@@ -51,12 +55,21 @@ get '/yahoo' do
     d = the_date.strftime('%d')
     m = the_date.strftime('%B')
     y = the_date.strftime('%G')
+    
+    @since_date = "#{dow}, #{m} #{d}, #{y}"
+    @wikipedia_url = "https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}"
   end  
   
-  'Hey ' + Rack::Utils.escape_html(nickname) + ", you've been a Yahoo! member since #{dow}, #{m} #{d}, #{y}. <a href='https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}' target='_blank'>See what was happening back then &raquo;</a>"
+  haml :yahoo
 end
 
 # Duh
 error 403, 404, 500 do
-  "This program has performed an illegal operation and will be shut down. If the problem persists, contact the program vendor. <a href='/'>Well, actually, I'd rather you go home &raquo;</a>"
+  haml :error
+end
+
+helpers do
+  def h(text)
+    Rack::Utils.escape_html(text)
+  end
 end
