@@ -1,13 +1,41 @@
-:javascript
-	function getQueryVariable(variable) {
-		var query = window.location.hash.substring(1);
-		var vars = query.split('&');
-		for (var i = 0; i < vars.length; i++) {
-			var pair = vars[i].split('=');
-			if (decodeURIComponent(pair[0]) == variable) {
-				return decodeURIComponent(pair[1]);
+!!! XML
+!!!
+%html
+	%head
+		:javascript
+			function getQueryVariable(variable) {
+				var query = window.location.hash.substring(1);
+				var vars = query.split('&');
+				for (var i = 0; i < vars.length; i++) {
+					var pair = vars[i].split('=');
+					if (decodeURIComponent(pair[0]) == variable) {
+						return decodeURIComponent(pair[1]);
+					}
+				}
 			}
-		}
-	}
-	
-	location.replace('callback/' + getQueryVariable("access_token"))
+			
+			function post(path, params) {
+				var form = document.createElement("form");
+				form.setAttribute("method", "post");
+				form.setAttribute("action", path);
+
+				for (var key in params) {
+					if (params.hasOwnProperty(key)) {
+						var hiddenField = document.createElement("input");
+						hiddenField.setAttribute("type", "hidden");
+						hiddenField.setAttribute("name", key);
+						hiddenField.setAttribute("value", params[key]);
+
+						form.appendChild(hiddenField);
+					}
+				}
+
+				document.body.appendChild(form);
+				form.submit();
+			}
+			
+			window.onload = function () { 
+				post('/callback', {"token": getQueryVariable("access_token")}) 
+			}
+		%title You are not supposed to see this
+	%body
