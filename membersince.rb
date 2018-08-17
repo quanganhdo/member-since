@@ -41,7 +41,7 @@ get '/' do
   
     haml :yahoo
   else
-    haml "%a{:href => url('/when')} When did I create my Yahoo account?"
+    haml "%a{:href => url('/when')} When did I create my Yahoo account? &rarr;"
   end
 end
 
