@@ -19,6 +19,8 @@ end
 
 # I hate long URLs
 post '/callback' do
+  halt 500 unless params[:token]
+  
   session[:access_token] = params[:token]
   
   redirect to('/yahoo')
@@ -26,6 +28,8 @@ end
 
 # Let's get things done
 get '/yahoo' do 
+  halt 500 unless session[:access_token] && session[:access_token].length > 0
+  
   # Retrieve Y! GUID
   guid_json = RestClient.get 'https://social.yahooapis.com/v1/me/guid?format=json', {:Authorization => 'Bearer ' + session[:access_token]}
   guid = JSON.parse(guid_json)['guid']['value']
@@ -38,16 +42,21 @@ get '/yahoo' do
   member_since = JSON.parse(social_profile_json)['query']['results']['profile']['memberSince']
   
   # Wikipedia Current Events Portal URL building for dummies
-  the_date = DateTime.parse(member_since)
-  dow = the_date.strftime('%A')
-  d = the_date.strftime('%d')
-  m = the_date.strftime('%B')
-  y = the_date.strftime('%G')
+  begin
+    the_date = DateTime.parse(member_since)
+  rescue ArgumentError
+    halt
+  else
+    dow = the_date.strftime('%A')
+    d = the_date.strftime('%d')
+    m = the_date.strftime('%B')
+    y = the_date.strftime('%G')
+  end  
   
-  'Hey ' + nickname + ", you've been a Yahoo! member since #{dow}, #{m} #{d}, #{y}. <a href='https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}'>See what was happening back then &raquo;</a>"
+  'Hey ' + Rack::Utils.escape_html(nickname) + ", you've been a Yahoo! member since #{dow}, #{m} #{d}, #{y}. <a href='https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}'>See what was happening back then &raquo;</a>"
 end
 
 # Duh
-error do
-  'Sorry, this is just a weekend project ;-)'
+error 403, 404, 500 do
+  "This program has performed an illegal operation and will be shut down. If the problem persists, contact the program vendor."
 end
