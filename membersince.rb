@@ -68,6 +68,11 @@ post '/callback' do
   redirect to('/')
 end
 
+# FB
+get '/tos' do
+  haml :tos, :layout => false
+end
+
 # Duh
 error 403, 404, 500 do
   haml :error
