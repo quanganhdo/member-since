@@ -35,8 +35,11 @@ get '/yahoo' do
   social_profile_json = RestClient.get 'https://query.yahooapis.com/v1/yql?q=select%20*%20from%20social.profile%20where%20guid%20%3D%20me&format=json', {:Authorization => 'Bearer ' + session[:access_token]}
   
   # Fields of interest
-  nickname = JSON.parse(social_profile_json)['query']['results']['profile']['nickname']
-  member_since = JSON.parse(social_profile_json)['query']['results']['profile']['memberSince']
+  social_profile = JSON.parse(social_profile_json)
+  nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
+  member_since = social_profile.dig('query', 'results', 'profile', 'memberSince')
+
+  halt 500 unless nickname && member_since
   
   # Wikipedia Current Events Portal URL building for dummies
   begin
@@ -55,5 +58,5 @@ end
 
 # Duh
 error 403, 404, 500 do
-  "This program has performed an illegal operation and will be shut down. If the problem persists, contact the program vendor."
+  "This program has performed an illegal operation and will be shut down. If the problem persists, contact the program vendor. <a href='/'>Well, actually, I'd rather you go home &raquo;</a>"
 end
