@@ -8,7 +8,41 @@ require 'time'
 enable :sessions
 
 get '/' do
-  haml "%a{:href => url('/when')} When did I create my Yahoo account?"
+  if session[:access_token] && session[:access_token].length > 0
+    # Retrieve full social profile
+    # https://developer.yahoo.com/social/rest_api_guide/profiles_table.html
+    social_profile_json = RestClient.get 'https://query.yahooapis.com/v1/yql?q=select%20*%20from%20social.profile%20where%20guid%20%3D%20me&format=json', {:Authorization => 'Bearer ' + session[:access_token]}
+  
+    # Fields of interest
+    social_profile = JSON.parse social_profile_json
+    @nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
+    member_since = social_profile.dig('query', 'results', 'profile', 'memberSince')
+
+    halt 500 unless @nickname && member_since
+  
+    @image_url = social_profile.dig('query', 'results', 'profile', 'image', 'imageUrl')
+  
+    # Wikipedia Current Events Portal URL building for dummies
+    begin
+      the_date = DateTime.parse member_since
+    rescue ArgumentError
+      halt
+    else
+      dow = the_date.strftime('%A')
+      d = the_date.strftime('%d')
+      m = the_date.strftime('%B')
+      y = the_date.strftime('%G')
+    
+      @since_date = "#{dow}, #{m} #{d}, #{y}"
+      @wikipedia_url = "https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}"
+    end  
+    
+    session.delete :access_token
+  
+    haml :yahoo
+  else
+    haml "%a{:href => url('/when')} When did I create my Yahoo account?"
+  end
 end
 
 # OAuth authorization 
@@ -31,42 +65,7 @@ post '/callback' do
   
   session[:access_token] = params[:token]
   
-  redirect to('/yahoo')
-end
-
-# Let's get things done
-get '/yahoo' do 
-  halt 500 unless session[:access_token] && session[:access_token].length > 0
-  
-  # Retrieve full social profile
-  # https://developer.yahoo.com/social/rest_api_guide/profiles_table.html
-  social_profile_json = RestClient.get 'https://query.yahooapis.com/v1/yql?q=select%20*%20from%20social.profile%20where%20guid%20%3D%20me&format=json', {:Authorization => 'Bearer ' + session[:access_token]}
-  
-  # Fields of interest
-  social_profile = JSON.parse(social_profile_json)
-  @nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
-  member_since = social_profile.dig('query', 'results', 'profile', 'memberSince')
-
-  halt 500 unless @nickname && member_since
-  
-  @image_url = social_profile.dig('query', 'results', 'profile', 'image', 'imageUrl')
-  
-  # Wikipedia Current Events Portal URL building for dummies
-  begin
-    the_date = DateTime.parse(member_since)
-  rescue ArgumentError
-    halt
-  else
-    dow = the_date.strftime('%A')
-    d = the_date.strftime('%d')
-    m = the_date.strftime('%B')
-    y = the_date.strftime('%G')
-    
-    @since_date = "#{dow}, #{m} #{d}, #{y}"
-    @wikipedia_url = "https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}"
-  end  
-  
-  haml :yahoo
+  redirect to('/')
 end
 
 # Duh
