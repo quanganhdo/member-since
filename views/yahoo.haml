@@ -1,3 +1,12 @@
-%p Hey #{h @nickname}, you've been a Yahoo member since #{@since_date}.
+%div 
+	- if @image_url
+		%img{:src => @image_url, :width => 192, :height => 192}
+%p
+	Hey 
+	%em&= @nickname
+	\- you've been a Yahoo member since 
+	%strong= @since_date
 %p
 	%a{:href => @wikipedia_url, :target => '_blank'} See what was happening back then &rarr;
+%p
+	%a{:href => '/when'} Or, try another account…
