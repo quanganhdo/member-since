@@ -30,12 +30,9 @@ end
 get '/yahoo' do 
   halt 500 unless session[:access_token] && session[:access_token].length > 0
   
-  # Retrieve Y! GUID
-  guid_json = RestClient.get 'https://social.yahooapis.com/v1/me/guid?format=json', {:Authorization => 'Bearer ' + session[:access_token]}
-  guid = JSON.parse(guid_json)['guid']['value']
-  
   # Retrieve full social profile
-  social_profile_json = RestClient.get 'https://query.yahooapis.com/v1/yql?q=select%20*%20from%20social.profile%20where%20guid%20%3D%20%27' + guid + '%27&format=json', {:Authorization => 'Bearer ' + session[:access_token]}
+  # https://developer.yahoo.com/social/rest_api_guide/profiles_table.html
+  social_profile_json = RestClient.get 'https://query.yahooapis.com/v1/yql?q=select%20*%20from%20social.profile%20where%20guid%20%3D%20me&format=json', {:Authorization => 'Bearer ' + session[:access_token]}
   
   # Fields of interest
   nickname = JSON.parse(social_profile_json)['query']['results']['profile']['nickname']
