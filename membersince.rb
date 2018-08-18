@@ -100,6 +100,10 @@ get '/tos' do
   haml :tos, :layout => false
 end
 
+get '/thanks' do
+  haml :thanks
+end
+
 # Duh
 error 403, 404, 500 do
   haml :error
