@@ -5,6 +5,7 @@ require 'rest-client'
 require 'json'
 require 'time'
 require 'base64'
+require 'cgi'
 
 enable :sessions
 
@@ -38,7 +39,7 @@ get '/' do
       :nickname => nickname,
       :since_date => since_date(the_date),
       :wikipedia_link => wikipedia_link(the_date),
-      :escaped_link => URI.escape(ENV['SITE'] + '/c/' + rot13(Base64.strict_encode64(nickname)) + '/' + rot13(Base64.strict_encode64(member_since)))
+      :escaped_link => CGI.escape(ENV['SITE'] + '/c/' + rot13(Base64.strict_encode64(nickname)) + '/' + rot13(Base64.strict_encode64(member_since)))
     }
   else
     haml "%a{:href => url('/when')} When did I create my Yahoo account? &rarr;"
