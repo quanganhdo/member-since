@@ -18,17 +18,20 @@
 		%title When Did You Created Your Yahoo Account?
 		%meta{:name => "author", :content => "@quanganhdo"}
 		%meta{:name => "viewport", :content => "width=device-width, initial-scale=1"}
-		- if defined?(canonical_url)		
-			%meta{:property => "og:url", :content => canonical_url}
+		- if defined?(og_url)		
+			%meta{:property => "og:url", :content => og_url}
 		- else
 			%meta{:property => "og:url", :content => "http://www.membersince.pw"}
 		%meta{:property => "og:type", :content => "website"}		
 		%meta{:property => "og:title", :content => "When Did You Created Your Yahoo Account?"}
-		- if defined?(description)
-			%meta{:property => "og:description", :content => description}
+		- if defined?(og_description)
+			%meta{:property => "og:description", :content => og_description}
 		- else
 			%meta{:property => "og:description", :content => "Find out when you created your Yahoo account"}
-		%meta{:property => "og:image", :content => "http://www.membersince.pw/default.jpg"}
+		- if defined?(og_image)	
+			%meta{:property => "og:image", :content => og_image}
+		- else
+			%meta{:property => "og:image", :content => "http://www.membersince.pw/default.jpg"}
 		%meta{:property => "fb:app_id", :content => "281484155774457"}
 		:plain
 			<link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">

@@ -23,6 +23,7 @@ get '/' do
     social_profile = JSON.parse social_profile_json
     nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
     member_since = social_profile.dig('query', 'results', 'profile', 'memberSince')
+    image_url = social_profile.dig('query', 'results', 'profile', 'image', 'imageUrl')
 
     halt 500 unless nickname && member_since
   
@@ -35,11 +36,11 @@ get '/' do
     session.delete :access_token
   
     haml :result, :locals => {
-      :image_url => social_profile.dig('query', 'results', 'profile', 'image', 'imageUrl'),
+      :image_url => image_url,
       :nickname => nickname,
       :since_date => since_date(the_date),
       :wikipedia_link => wikipedia_link(the_date),
-      :escaped_link => CGI.escape(ENV['SITE'] + '/c/' + rot13(Base64.strict_encode64(nickname)) + '/' + rot13(Base64.strict_encode64(member_since)))
+      :escaped_link => CGI.escape(ENV['SITE'] + '/c/' + rot13(Base64.strict_encode64(nickname)) + '/' + rot13(Base64.strict_encode64(member_since)) + '/' + rot13(Base64.strict_encode64(image_url)))
     }
   else
     haml "%a{:href => url('/when')} When did I create my Yahoo account? &rarr;"
@@ -69,12 +70,13 @@ post '/callback' do
   redirect to('/')
 end
 
-# cached
-get '/c/:nickname/:member_since' do
+# c = cached
+get '/c/:nickname/:member_since/:image_url' do
   nickname = Base64.decode64(rot13(params[:nickname]))
   member_since = Base64.decode64(rot13(params[:member_since]))
+  image_url = Base64.decode64(rot13(params[:image_url]))
   
-  halt 500 unless nickname && member_since
+  halt 500 unless nickname && member_since && image_url
   
   begin
     the_date = DateTime.parse member_since
@@ -83,11 +85,13 @@ get '/c/:nickname/:member_since' do
   end 
   
   haml :cached, :locals => {
+    :image_url => image_url,
     :nickname => nickname,
     :since_date => since_date(the_date),
     :wikipedia_link => wikipedia_link(the_date),
-    :canonical_url => request.url,
-    :description => "#{Rack::Utils.escape_html(nickname)} joined Yahoo on #{since_date(the_date)}. How about you?"
+    :og_url => request.url,
+    :og_description => "#{Rack::Utils.escape_html(nickname)} joined Yahoo on #{since_date(the_date)}. How about you?",
+    :og_image => "http://images.weserv.nl/?url=#{CGI.escape(image_url.gsub(/https?:\/\//, ''))}&w=200&h=200&t=absolute" 
   }
 end
 
