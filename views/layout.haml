@@ -21,7 +21,10 @@
 		%meta{:property => "og:url", :content => "http://www.membersince.pw"}
 		%meta{:property => "og:type", :content => "website"}		
 		%meta{:property => "og:title", :content => "When Did You Created Your Yahoo Account?"}
-		%meta{:property => "og:description", :content => "Find out when you created your Yahoo account"}
+		- if defined?(description)
+			%meta{:property => "og:description", :content => description}
+		- else
+			%meta{:property => "og:description", :content => "Find out when you created your Yahoo account"}
 		%meta{:property => "og:image", :content => "http://www.membersince.pw/default.jpg"}
 		%meta{:property => "fb:app_id", :content => "281484155774457"}
 		:plain

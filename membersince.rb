@@ -12,7 +12,11 @@ get '/' do
   if session[:access_token] && session[:access_token].length > 0
     # Retrieve full social profile
     # https://developer.yahoo.com/social/rest_api_guide/profiles_table.html
-    social_profile_json = RestClient.get 'https://query.yahooapis.com/v1/yql?q=select%20*%20from%20social.profile%20where%20guid%20%3D%20me&format=json', {:Authorization => 'Bearer ' + session[:access_token]}
+    begin
+      social_profile_json = RestClient.get 'https://query.yahooapis.com/v1/yql?q=select%20*%20from%20social.profile%20where%20guid%20%3D%20me&format=json', {:Authorization => 'Bearer ' + session[:access_token]}
+    rescue
+      halt 500
+    end
   
     # Fields of interest
     social_profile = JSON.parse social_profile_json
@@ -74,13 +78,14 @@ get '/c/:nickname/:member_since' do
   begin
     the_date = DateTime.parse member_since
   rescue ArgumentError
-    halt
+    halt 500
   end 
   
   haml :cached, :locals => {
     :nickname => nickname,
     :since_date => since_date(the_date),
-    :wikipedia_link => wikipedia_link(the_date)
+    :wikipedia_link => wikipedia_link(the_date),
+    :description => "I joined Yahoo on #{since_date(the_date)}. How about you?"
   }
 end
 
