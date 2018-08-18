@@ -86,7 +86,8 @@ get '/c/:nickname/:member_since' do
     :nickname => nickname,
     :since_date => since_date(the_date),
     :wikipedia_link => wikipedia_link(the_date),
-    :description => "I joined Yahoo on #{since_date(the_date)}. How about you?"
+    :canonical_url => request.url,
+    :description => "#{Rack::Utils.escape_html(nickname)} joined Yahoo on #{since_date(the_date)}. How about you?"
   }
 end
 

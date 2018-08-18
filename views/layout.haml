@@ -18,7 +18,10 @@
 		%title When Did You Created Your Yahoo Account?
 		%meta{:name => "author", :content => "@quanganhdo"}
 		%meta{:name => "viewport", :content => "width=device-width, initial-scale=1"}
-		%meta{:property => "og:url", :content => "http://www.membersince.pw"}
+		- if defined?(canonical_url)		
+			%meta{:property => "og:url", :content => canonical_url}
+		- else
+			%meta{:property => "og:url", :content => "http://www.membersince.pw"}
 		%meta{:property => "og:type", :content => "website"}		
 		%meta{:property => "og:title", :content => "When Did You Created Your Yahoo Account?"}
 		- if defined?(description)
