@@ -1,0 +1,12 @@
+- if image_url
+	%div 
+		%img{:src => image_url, :width => 192, :height => 192}
+%p
+	Hey 
+	%em&= nickname
+	\- you've been a Yahoo member since 
+	%strong= since_date
+%p
+	%a{:href => wikipedia_link, :target => '_blank'} See what was happening back then &rarr;
+%p
+	%a{:href => "https://www.facebook.com/dialog/feed?app_id=281484155774457&display=popup&amp&link=#{escaped_link}&redirect_uri=https%3A%2F%2Fwww.membersince.pw", :target => '_blank'} Or, share this on Facebook…

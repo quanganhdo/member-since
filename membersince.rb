@@ -4,6 +4,7 @@ require 'haml'
 require 'rest-client'
 require 'json'
 require 'time'
+require 'base64'
 
 enable :sessions
 
@@ -15,31 +16,26 @@ get '/' do
   
     # Fields of interest
     social_profile = JSON.parse social_profile_json
-    @nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
+    nickname = social_profile.dig('query', 'results', 'profile', 'nickname')
     member_since = social_profile.dig('query', 'results', 'profile', 'memberSince')
 
-    halt 500 unless @nickname && member_since
+    halt 500 unless nickname && member_since
   
-    @image_url = social_profile.dig('query', 'results', 'profile', 'image', 'imageUrl')
-  
-    # Wikipedia Current Events Portal URL building for dummies
     begin
       the_date = DateTime.parse member_since
     rescue ArgumentError
       halt
-    else
-      dow = the_date.strftime('%A')
-      d = the_date.strftime('%d')
-      m = the_date.strftime('%B')
-      y = the_date.strftime('%G')
-    
-      @since_date = "#{dow}, #{m} #{d}, #{y}"
-      @wikipedia_url = "https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}"
     end  
     
     session.delete :access_token
   
-    haml :yahoo
+    haml :result, :locals => {
+      :image_url => social_profile.dig('query', 'results', 'profile', 'image', 'imageUrl'),
+      :nickname => nickname,
+      :since_date => since_date(the_date),
+      :wikipedia_link => wikipedia_link(the_date),
+      :escaped_link => URI.escape(ENV['SITE'] + '/c/' + rot13(Base64.strict_encode64(nickname)) + '/' + rot13(Base64.strict_encode64(member_since)))
+    }
   else
     haml "%a{:href => url('/when')} When did I create my Yahoo account? &rarr;"
   end
@@ -68,6 +64,26 @@ post '/callback' do
   redirect to('/')
 end
 
+# cached
+get '/c/:nickname/:member_since' do
+  nickname = Base64.decode64(rot13(params[:nickname]))
+  member_since = Base64.decode64(rot13(params[:member_since]))
+  
+  halt 500 unless nickname && member_since
+  
+  begin
+    the_date = DateTime.parse member_since
+  rescue ArgumentError
+    halt
+  end 
+  
+  haml :cached, :locals => {
+    :nickname => nickname,
+    :since_date => since_date(the_date),
+    :wikipedia_link => wikipedia_link(the_date)
+  }
+end
+
 # FB
 get '/tos' do
   haml :tos, :layout => false
@@ -76,4 +92,26 @@ end
 # Duh
 error 403, 404, 500 do
   haml :error
+end
+
+# utils
+def rot13(str)
+  str.tr("A-Za-z", "N-ZA-Mn-za-m")
+end
+
+def since_date(parsed_date)
+  dow = parsed_date.strftime('%A')
+  d = parsed_date.strftime('%d')
+  m = parsed_date.strftime('%B')
+  y = parsed_date.strftime('%G')
+  
+  "#{dow}, #{m} #{d}, #{y}"
+end
+
+def wikipedia_link(parsed_date)
+  d = parsed_date.strftime('%d')
+  m = parsed_date.strftime('%B')
+  y = parsed_date.strftime('%G')
+  
+  "https://en.wikipedia.org/wiki/Portal:Current_events/#{m}_#{y}\##{y}_#{m}_#{d}"
 end
